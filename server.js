@@ -8,7 +8,9 @@ const io = new Server({
     },
 });
 io.on("connection", (socket) => {
+    console.log(`connection connected socket id: ${socket.id}`);
     socket.on("join_room", ({personName, roomName}) => {
+        console.log(`Joined Room socket id:${socket.id} , personName:${personName} roomName:${roomName}`);
         socket.join(roomName)
         socket.to(roomName).emit('receive_channel', {
             eventType: "joinedRoom",
@@ -19,6 +21,7 @@ io.on("connection", (socket) => {
         });
     })
     socket.on("send_channel", ({roomName, personName, content}) => {
+        console.log(`Send Channel Socket Id: ${socket.id} to roomName:${roomName},personName${personName}, content:${content}`);
         io.to(roomName).emit("receive_channel", {
             eventType: "textMessage",
             roomName: roomName,
@@ -29,6 +32,7 @@ io.on("connection", (socket) => {
     })
     socket.on("leave_room", ({personName, roomName}) => {
         socket.leave(roomName)
+        console.log(`Left Room socket id ${socket.id} , personName:${personName} roomName:${roomName}`);
         socket.to(roomName).emit('receive_channel', {
             eventType: "leftRoom",
             personName: personName,
