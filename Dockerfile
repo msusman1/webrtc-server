@@ -4,15 +4,21 @@ FROM node:16
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy package.json and install dependencies
+# Copy package.json and package-lock.json (if exists) and install dependencies
 COPY package*.json ./
 RUN npm install --production
 
 # Copy the rest of the application files
 COPY . .
 
-# Expose the port your app runs on
-EXPOSE 3000
+# Install TypeScript globally
+RUN npm install -g typescript
 
-# Start the Node.js app
-CMD ["node", "server.js"]
+# Compile TypeScript files to JavaScript
+RUN tsc
+
+# Expose the port your app runs on
+EXPOSE 4000
+
+# Start the Node.js app (replace 'server.js' with your compiled entry point, usually in the 'dist' folder)
+CMD ["node", "dist/server.js"]
