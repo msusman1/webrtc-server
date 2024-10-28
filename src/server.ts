@@ -1,10 +1,11 @@
 import {Server, Socket} from "socket.io";
 import {
-    ChatMessage,
-    ChatMessageEventType,
-    Room,
+    AnswerRequest,
+    ChatMessage, IccCandidateRequest,
+    OfferRequest,
     RoomJoinRequest,
     RoomLeaveRequest,
+    RoomMessage,
     RoomMessageRequest
 } from "./types/Room";
 
@@ -17,79 +18,62 @@ const io = new Server({
 });
 
 
-const rooms: Room[] = []
 io.on("connection", (socket: Socket) => {
     console.log(`connection connected socket id: ${socket.id}`);
-    socket.on("create_room", (roomName: string) => {
-        const existingRoom = rooms.find((room: Room) => room.name === roomName);
-        if (existingRoom) {
-            console.log("room with same name already exists");
-            socket.emit("room_created", existingRoom)
-        } else {
-            const newRoom: Room = {name: roomName}
-            rooms.push(newRoom);
-            socket.emit("room_created", newRoom)
-        }
 
-
-    })
-    socket.on("join_room", (joinRequest: RoomJoinRequest) => {
+    socket.on("join_room", async (joinRequest: RoomJoinRequest) => {
         console.log(`Joined Room socket id:${socket.id} , joinRequest `, joinRequest);
-        if (rooms.map(it => it.name).includes(joinRequest.roomName)) {
-            socket.join(joinRequest.roomName)
-            const chatMessage: ChatMessage = {
-                eventType: ChatMessageEventType.joinedRoom,
-                personName: joinRequest.personName,
-                roomName: joinRequest.roomName,
-                content: "User joined",
-                timestamp: new Date().toUTCString(),
-            }
-            socket.to(joinRequest.roomName).emit('receive_channel', chatMessage);
-        } else {
-            console.log(`room ${joinRequest.roomName} not exists`)
+        socket.join(joinRequest.roomName)
+        const roomMessage: RoomMessage = {
+            personName: joinRequest.personName,
+            roomName: joinRequest.roomName,
+            socketId: socket.id,
+            timestamp: new Date().toUTCString(),
         }
+        io.to(joinRequest.roomName).emit('user_joined', roomMessage);
     })
 
-    socket.on("send_channel", (roomMessageRequest: RoomMessageRequest) => {
-        console.log(`Send Channel Socket Id: ${socket.id} roomMessageRequest:`, roomMessageRequest);
-        if (rooms.map(it => it.name).includes(roomMessageRequest.roomName)) {
-            const chatMessage: ChatMessage = {
-                eventType: ChatMessageEventType.textMessage,
-                roomName: roomMessageRequest.roomName,
-                personName: roomMessageRequest.personName,
-                content: roomMessageRequest.content,
-                timestamp: new Date().toUTCString(),
-            }
-            io.to(roomMessageRequest.roomName).emit("receive_channel", chatMessage);
-        } else {
-            console.log(`room ${roomMessageRequest.roomName} not exists`)
+    socket.on("message", (roomMessageRequest: RoomMessageRequest) => {
+        console.log(`message Socket Id: ${socket.id} roomMessageRequest:`, roomMessageRequest);
+        const chatMessage: ChatMessage = {
+            personName: roomMessageRequest.personName,
+            content: roomMessageRequest.content,
+            timestamp: new Date().toUTCString(),
         }
+        io.to(roomMessageRequest.roomName).emit("message", chatMessage);
     })
 
     socket.on("leave_room", (roomLeaveRequest: RoomLeaveRequest) => {
         console.log(`Left Room socket id ${socket.id} , roomLeaveRequest`, roomLeaveRequest);
         socket.leave(roomLeaveRequest.roomName)
-        const chatMessage: ChatMessage = {
-            eventType: ChatMessageEventType.leftRoom,
+        const roomMessage: RoomMessage = {
             personName: roomLeaveRequest.personName,
             roomName: roomLeaveRequest.roomName,
-            content: "User left",
+            socketId: socket.id,
             timestamp: new Date().toUTCString(),
         }
-        socket.to(roomLeaveRequest.roomName).emit('receive_channel', chatMessage);
+        socket.to(roomLeaveRequest.roomName).emit('user_left', roomMessage);
+
+
     })
 
-    socket.on("offer", (sdf) => {
-        console.log(`Sdf offer:`, sdf);
-        socket.broadcast.emit("getOffer", sdf)
+    socket.on("offer", (offerRequest: OfferRequest) => {
+        console.log(`Sdf offer:`, offerRequest);
+        socket.to(offerRequest.roomName).emit('offer', offerRequest);
+
     })
-    socket.on("answer", (sdf) => {
-        console.log(`Sdf answer`, sdf);
-        socket.broadcast.emit("getAnswer", sdf)
+
+    socket.on("answer", (answerRequest: AnswerRequest) => {
+        console.log(`Sdf answer`, answerRequest);
+        socket.to(answerRequest.answerFor).emit("answer", answerRequest)
     })
-    socket.on("iceCandidate", (iceCandidate) => {
-        console.log(`getIceCandidate:`, iceCandidate);
-        socket.broadcast.emit("getIceCandidate", iceCandidate)
+    socket.on("ice-candidate", (iccCandidateRequest: IccCandidateRequest) => {
+        console.log(`getIceCandidate:`, iccCandidateRequest);
+        const iccCandidateRequestNew: IccCandidateRequest = {
+            iccCandidate: iccCandidateRequest.iccCandidate,
+            fromSocketId: iccCandidateRequest.fromSocketId,
+        }
+        socket.to(iccCandidateRequest.fromSocketId).emit("ice-candidate", iccCandidateRequestNew)
     })
     socket.on("disconnect", (data) => {
         console.log(`Disconnected socket id: ${socket.id}`);
