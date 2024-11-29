@@ -1,6 +1,6 @@
 # WebRTC Server Demo 
 
-This is the backend signaling server for a WebRTC client demo. It allows users to join rooms, exchange video/audio streams, and send real-time chat messages through WebRTC and Socket.IO.
+This is a signaling protocol implementation for a WebRTC client app. It allows users to join rooms, exchange video/audio streams, and send real-time chat messages through WebRTC and Socket.IO.
 
 You can check the webrtc client demo implemented using Reactjs: [WebRTC Client Repo](https://github.com/msusman1/webrtc-server).
 
@@ -187,3 +187,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+ 
