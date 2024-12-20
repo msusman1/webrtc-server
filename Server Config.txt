@@ -1,0 +1,35 @@
+1. Create a service file
+   sudo nano /etc/systemd/system/socket-server.service
+
+2. Add flowing content
+
+    [Unit]
+    Description=Node Socket Server
+    After=network.target
+
+    [Service]
+    ExecStart=/usr/bin/node /home/konjacfoods/server.js
+    Restart=always
+    User=usman
+    Environment=PATH=/usr/bin:/usr/local/bin
+    WorkingDirectory=/home/konjacfoods
+
+    [Install]
+    WantedBy=multi-user.target
+
+3. Reload systemd:
+    sudo systemctl daemon-reload
+
+4. Start the service:
+    sudo systemctl start socket-server
+    sudo systemctl restart socket-server
+    sudo systemctl stop socket-server
+
+5. Enable it on boot:
+    sudo systemctl enable socket-server
+
+6. Check the service status:
+    sudo systemctl status socket-server
+    sudo journalctl -u socket-server.service
+    sudo journalctl -u socket-server.service -f    //live logs
+
