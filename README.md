@@ -2,7 +2,7 @@
 
 This is a signaling protocol implementation for a WebRTC client app. It allows users to join rooms, exchange video/audio streams, and send real-time chat messages through WebRTC and Socket.IO.
 
-You can check the webrtc client demo implemented using Reactjs: [WebRTC Client Repo](https://github.com/msusman1/webrtc-server).
+You can check the webrtc client demo implemented using Reactjs: [WebRTC Client Repo](https://github.com/msusman1/webrtc-client).
 
 ## Features
 
